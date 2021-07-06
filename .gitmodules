@@ -1,0 +1,6 @@
+[submodule "tek/r3f_tools"]
+	path = tek/r3f_tools
+	url = git@github.com:guotsuan/r3f_tools.git
+[submodule "tek/iqtools"]
+	path = tek/iqtools
+	url = git@github.com:guotsuan/iqtools.git
