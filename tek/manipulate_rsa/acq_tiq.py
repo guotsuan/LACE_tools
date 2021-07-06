@@ -26,8 +26,8 @@ from RSA_API import *
 
 # C:\Tektronix\RSA_API\lib\x64 needs to be added to the
 # PATH system environment variable
-# chdir("C:\\Tektronix\\RSA_API\\lib\\x64")
-# rsa = cdll.LoadLibrary("RSA_API.dll")
+chdir("C:\\Tektronix\\RSA_API\\lib\\x64")
+rsa = cdll.LoadLibrary("RSA_API.dll")
 
 
 """################CLASSES AND FUNCTIONS################"""
@@ -505,21 +505,23 @@ def peak_power_detector(freq, trace):
 
 
 def main():
-    from datetime import datetime
-    import time
-    # uncomment the example you'd like to run
     starttime = datetime.now().strftime('%y%m%dT%H%M%S')
     print(starttime)
-    finish = 20
+    finish = 1
     i = 0
-    inv = 5.0
+    inv = 30.0
     while i< finish:
-        # file_name = my_iq_stream(i, starttime)
-        fn = file_name(i, starttime)
-        print("tick", i, fn)
+        file_name = my_iq_stream(starttime, i)
+        gdata=get_gps_data()
+        dump_gps_data(file_name +'.json', gdata)
+        print("tick", i, file_name,)
         i=i+1
+        print("sleeping...")
 
         time.sleep(inv)
 
 if __name__ == '__main__':
+    from datetime import datetime
+    from get_gps import get_gps_data, dump_gps_data
+    import time
     main()

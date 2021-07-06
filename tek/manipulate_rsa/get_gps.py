@@ -29,6 +29,23 @@ def get_gps_data(port='COM3', bandrate=9600, timeout=1):
 
     return gps
 
+def dump_gps_data(fn, gps):
+    import numpy as np
+    import json
+
+    data={}
+    fields = ['longitude', 'latitude', 'altitude']
+    data['longitude'] = gps.longitude
+    data['latitude'] = gps.latitude
+    data['altitude'] = gps.altitude
+
+    out = json.dumps(data)
+
+    f = open(fn,"w")
+    f.write(out)
+    f.close()
+
 gps = get_gps_data()
+dump_gps_data("test.json", gps)
 print(gps.longitude, gps.latitude)
 
