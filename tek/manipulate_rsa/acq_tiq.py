@@ -423,13 +423,13 @@ def iqstream_status_parser(iqStreamInfo):
               'data loss has occurred.\n')
 
 
-def my_iq_stream(filep, index):
+def my_iq_stream(filep, index, dur=500):
     print('\n\n########IQ Stream Example########')
     search_connect()
 
     bw = 40e6
     dest = IQSOUTDEST.IQSOD_FILE_TIQ
-    durationMsec = 500
+    durationMsec = dur
     waitTime = 0.1
     iqStreamInfo = IQSTREAM_File_Info()
 
@@ -520,8 +520,19 @@ def main():
 
         time.sleep(inv)
 
+def acquire_iq(durtime=5):
+    starttime = datetime.now().strftime('%y%m%dT%H%M%S')
+    print(starttime)
+    file_name = my_iq_stream(starttime, i, dur=durtime)
+    print("data is saved in: ", file_name + '.tiq')
+
+    return
+
+
+
 if __name__ == '__main__':
     from datetime import datetime
     from get_gps import get_gps_data, dump_gps_data
     import time
+    # acq
     main()
