@@ -13,39 +13,50 @@ get the gps data
 def get_gps_data(port='COM3', bandrate=9600, timeout=1):
 
     import serial, pynmea2
-    ser = serial.Serial('COM3', 9600, timeout=1)
-    if not ser.is_open:
-        ser.open()
+    try:
+        ser = serial.Serial('COM3', 9600, timeout=1)
 
-    get_data = False
+        if not ser.is_open:
+            ser.open()
 
-    while not get_data:
-        line = ser.readline()
-        if b'$GNGGA' in line:
-            gps=pynmea2.parse(line.decode())
-            get_data=True
+        get_data = False
 
-    ser.close()
+        while not get_data:
+            line = ser.readline()
+            if b'$GNGGA' in line:
+                gps=pynmea2.parse(line.decode())
+                get_data=True
 
-    return gps
+        ser.close()
+        return gps
+
+    except Exception as e:
+        print("Exception: No communiaton port is found, skipping location")
+        return None
+
 
 def dump_gps_data(fn, gps):
     import numpy as np
     import json
 
-    data={}
-    fields = ['longitude', 'latitude', 'altitude']
-    data['longitude'] = gps.longitude
-    data['latitude'] = gps.latitude
-    data['altitude'] = gps.altitude
+    if gps is not None:
+        data={}
+        fields = ['longitude', 'latitude', 'altitude']
+        data['longitude'] = gps.longitude
+        data['latitude'] = gps.latitude
+        data['altitude'] = gps.altitude
 
-    out = json.dumps(data)
+        out = json.dumps(data)
 
-    f = open(fn,"w")
-    f.write(out)
-    f.close()
+        f = open(fn,"w")
+        f.write(out)
+        f.close()
+    else:
+        print("No GPS logged")
 
-gps = get_gps_data()
-dump_gps_data("test.json", gps)
-print(gps.longitude, gps.latitude)
+if __name__ == '__main__':
+    gps = get_gps_data()
+    dump_gps_data("test.json", gps)
+    if gps is not None:
+        print(gps.longitude, gps.latitude)
 
