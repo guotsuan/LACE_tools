@@ -529,14 +529,18 @@ def peak_power_detector(freq, trace):
 
 
 
-def main():
+def main(ftype='iq'):
     starttime = datetime.now().strftime('%y%m%dT%H%M%S')
     print(starttime)
     finish = 1
     i = 0
     inv = 30.0
     while i< finish:
-        file_name = my_iq_stream(starttime, i)
+        # if want l
+        if ftype == 'iq':
+            file_name = my_iq_stream(starttime, i)
+        elif ftype == 'if':
+            file_name = my_if_stream(starttime, i)
         gdata=get_gps_data()
         dump_gps_data(file_name +'.json', gdata)
         print("tick", i, file_name,)
@@ -567,8 +571,9 @@ def acquire_if(durtime=500):
 
 if __name__ == '__main__':
     from datetime import datetime
-    #from get_gps import get_gps_data, dump_gps_data
+    from get_gps import get_gps_data, dump_gps_data
     import time
-    # acq
+    # main() acquire with every N secs
+    # acquire_* () function run only once.
     #main()
     acquire_if()
