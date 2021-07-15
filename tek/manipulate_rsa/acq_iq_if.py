@@ -383,8 +383,11 @@ def if_stream_example():
     rsa.DEVICE_Stop()
     rsa.DEVICE_Disconnect()
 
-def my_if_stream(filep, index, dur=500):
+def my_if_stream(filep, index, dur=500, cf=80):
     # default duration is 500 mS
+    # cf unit is Mhz
+    cf = cf*1e6
+
     print('\n\n########GQ IF Stream########')
     search_connect()
     durationMSec=500
@@ -392,7 +395,7 @@ def my_if_stream(filep, index, dur=500):
 
     fn = 'if_stream_' + filep + '_' + str(index)
 
-    config_if_stream(fileDir='C:\\Users\\guots\\Downloads\\tekdata\\',
+    config_if_stream(cf=cf, refLevel=0, fileDir='C:\\Users\\guots\\Downloads\\tekdata\\',
                      fileName=fn, durationMsec=dur)
     writing = c_bool(True)
 
@@ -448,11 +451,15 @@ def iqstream_status_parser(iqStreamInfo):
               'data loss has occurred.\n')
 
 
-def my_iq_stream(filep, index, dur=500):
+def my_iq_stream(filep, index, dur=500, cf=80, bw=3e3):
+    # cf is Mhz
+    # bw unit is hz
+    cf = cf*1e6
+    bw = bw
     print('\n\n########IQ Stream Example########')
     search_connect()
 
-    bw = 40e6
+    bw = 1.5e3
     dest = IQSOUTDEST.IQSOD_FILE_TIQ
     durationMsec = dur
     waitTime = 0.1
@@ -462,7 +469,7 @@ def my_iq_stream(filep, index, dur=500):
     writing = c_bool(False)
 
     fn = 'iq_stream_' + filep + '_' + str(index)
-    config_iq_stream(cf=300e6, refLevel=0, bw=bw, fileDir='C:\\Users\\guots\\Downloads\\tekdata\\',
+    config_iq_stream(cf=cf, refLevel=0, bw=bw, fileDir='C:\\Users\\guots\\Downloads\\tekdata\\',
                      fileName=fn, dest=dest,
                      durationMsec=durationMsec)
 
@@ -529,18 +536,21 @@ def peak_power_detector(freq, trace):
 
 
 
-def main(ftype='iq'):
+def acq_repeat(ftype='iq', cf=80, ntime=30, interval=30.):
+    # cf = 80 Mhz
+    # ntime, repeat 30 times
+    # interval, time interval is 30 secs
     starttime = datetime.now().strftime('%y%m%dT%H%M%S')
     print(starttime)
-    finish = 1
+    finish = ntime
     i = 0
-    inv = 30.0
+    inv = interval
     while i< finish:
         # if want l
         if ftype == 'iq':
-            file_name = my_iq_stream(starttime, i)
+            file_name = my_iq_stream(starttime, i, cf)
         elif ftype == 'if':
-            file_name = my_if_stream(starttime, i)
+            file_name = my_if_stream(starttime, i, cf)
         gdata=get_gps_data()
         dump_gps_data(file_name +'.json', gdata)
         print("tick", i, file_name,)
@@ -549,22 +559,22 @@ def main(ftype='iq'):
 
         time.sleep(inv)
 
-def acquire_iq(durtime=5):
+def acquire_iq(durtime=5, cf=80, bw=3e3):
     starttime = datetime.now().strftime('%y%m%dT%H%M%S')
     print(starttime)
     i = 0
-    file_name = my_iq_stream(starttime, i, dur=durtime)
+    file_name = my_iq_stream(starttime, i, dur=durtime, cf=cf, bw=bw)
     print("data is saved in: ", file_name + '.tiq')
 
     return
 
 
-def acquire_if(durtime=500):
+def acquire_if(durtime=500, cf=80, bw=3e3):
     # the unit of durtime is mS
     starttime = datetime.now().strftime('%y%m%dT%H%M%S')
     i = 0
     print(starttime)
-    file_name = my_if_stream(starttime, i, dur=durtime)
+    file_name = my_if_stream(starttime, i, dur=durtime, cf=cf)
     print("data is saved in: ", file_name + '.tiq')
 
 
