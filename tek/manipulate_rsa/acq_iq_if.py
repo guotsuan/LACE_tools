@@ -20,14 +20,25 @@ from ctypes import *
 from os import chdir
 from time import sleep
 import numpy as np
+import platform
 import matplotlib.pyplot as plt
 from RSA_API import *
 
 
 # C:\Tektronix\RSA_API\lib\x64 needs to be added to the
 # PATH system environment variable
-chdir("C:\\Tektronix\\RSA_API\\lib\\x64")
-rsa = cdll.LoadLibrary("RSA_API.dll")
+
+os_type = platform.system()
+if os_type == 'Windows':
+    print("Operating System is: ", os_type)
+    chdir("C:\\Tektronix\\RSA_API\\lib\\x64")
+    rsa = cdll.LoadLibrary("RSA_API.dll")
+else:
+    print("Operating System is: ", os_type)
+    RTLD_LAZY = 0x0001
+    LAZYLOAD = RTLD_LAZY | RTLD_GLOBAL
+    rsa = CDLL("/usr/lib/tek/libRSA_API.so",LAZYLOAD)
+    usbapi = CDLL("/usr/lib/tek/libcyusb_shared.so",LAZYLOAD)
 
 
 """################CLASSES AND FUNCTIONS################"""
@@ -383,9 +394,13 @@ def if_stream_example():
     rsa.DEVICE_Stop()
     rsa.DEVICE_Disconnect()
 
-def my_if_stream(filep, index, dur=500, cf=80):
+def my_if_stream(filep, index, dur=500, cf=80,
+                 fileDir='C:\\Users\\guots\\Downloads\\tekdata\\'):
     # default duration is 500 mS
     # cf unit is Mhz
+    if os_type != 'Windows':
+        fileDir='./'
+
     cf = cf*1e6
 
     print('\n\n########GQ IF Stream########')
@@ -395,7 +410,7 @@ def my_if_stream(filep, index, dur=500, cf=80):
 
     fn = 'if_stream_' + filep + '_' + str(index)
 
-    config_if_stream(cf=cf, refLevel=0, fileDir='C:\\Users\\guots\\Downloads\\tekdata\\',
+    config_if_stream(cf=cf, refLevel=0, fileDir=fileDir,
                      fileName=fn, durationMsec=dur)
     writing = c_bool(True)
 
