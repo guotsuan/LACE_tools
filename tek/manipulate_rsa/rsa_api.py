@@ -22,7 +22,7 @@ from time import sleep
 import numpy as np
 import platform
 import matplotlib.pyplot as plt
-from RSA_API import *
+from offical_rsa_api import *
 
 
 # C:\Tektronix\RSA_API\lib\x64 needs to be added to the
@@ -97,7 +97,8 @@ def config_spectrum(cf=1e9, refLevel=0, span=40e6, rbw=300e3):
     rsa.SPECTRUM_SetDefault()
     specSet = Spectrum_Settings()
     rsa.SPECTRUM_GetSettings(byref(specSet))
-    specSet.window = SpectrumWindows.SpectrumWindow_Kaiser
+    # specSet.window = SpectrumWindows.SpectrumWindow_Kaiser
+    specSet.window = SpectrumWindows.SpectrumWindow_Rectangle
     specSet.verticalUnit = SpectrumVerticalUnits.SpectrumVerticalUnit_dBm
     specSet.span = span
     specSet.rbw = rbw
@@ -114,21 +115,38 @@ def create_frequency_array(specSet):
     return freq
 
 
-def acquire_spectrum(specSet):
+def acquire_spectrum(specSet, avgNum=None):
     ready = c_bool(False)
     traceArray = c_float * specSet.traceLength
     traceData = traceArray()
-    outTracePoints = c_int(0)
     traceSelector = SpectrumTraces.SpectrumTrace1
+    outTracePoints = c_int(0)
+    if isinstance(avgNum, int):
+        trace_points_return = np.zeros(avgNum, dtype=np.int)
+        trace_return = np.zeros((avgNum, np.int(specSet.traceLength)))
 
     rsa.DEVICE_Run()
-    rsa.SPECTRUM_AcquireTrace()
-    while not ready.value:
-        rsa.SPECTRUM_WaitForDataReady(c_int(100), byref(ready))
-    rsa.SPECTRUM_GetTrace(traceSelector, specSet.traceLength, byref(traceData),
-                          byref(outTracePoints))
+    if isinstance(avgNum, int):
+        for i in range(avgNum):
+            ready = c_bool(False)
+            rsa.SPECTRUM_AcquireTrace()
+            while not ready.value:
+                rsa.SPECTRUM_WaitForDataReady(c_int(30), byref(ready))
+            rsa.SPECTRUM_GetTrace(traceSelector, specSet.traceLength, byref(traceData),
+                                byref(outTracePoints))
+            trace_return[i,...] = np.array(traceData)
+            trace_points_return[i] = outTracePoints.value
+    else:
+        while not ready.value:
+            rsa.SPECTRUM_WaitForDataReady(c_int(100), byref(ready))
+        rsa.SPECTRUM_GetTrace(traceSelector, specSet.traceLength, byref(traceData),
+                            byref(outTracePoints))
     rsa.DEVICE_Stop()
-    return np.array(traceData)
+
+    if isinstance(avgNum, int):
+        return trace_return
+    else:
+        return np.array(traceData)
 
 
 def spectrum_example():
